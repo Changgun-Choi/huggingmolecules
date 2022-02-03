@@ -11,6 +11,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import sys
+import os
+
 from .models_api import PretrainedModelBase
 from .models_common_utils import MultiHeadedAttention, PositionwiseFeedForward, Embedding, Encoder, Generator
 from ..configuration.configuration_mat import MatConfig

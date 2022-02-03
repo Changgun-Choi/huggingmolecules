@@ -41,7 +41,7 @@ class MatFeaturizer(PretrainedFeaturizerMixin[MatMoleculeEncoding, MatBatchEncod
 
     def _encode_smiles(self, smiles: str, y: Optional[float]) -> MatMoleculeEncoding:
         mol = get_mol_from_smiles(smiles)
-
+        
         node_features = build_atom_features_matrix(mol)
         adj_matrix = build_adjacency_matrix(mol)
         pos_matrix = build_position_matrix(mol)

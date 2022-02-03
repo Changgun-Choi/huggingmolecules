@@ -37,7 +37,9 @@ class PretrainedFeaturizerMixin(Generic[T_MoleculeEncoding, T_BatchEncoding, T_C
             assert len(smiles_list) == len(y_list)
         y_list = y_list if y_list is not None else (None for _ in smiles_list)
         for smiles, y in zip(smiles_list, y_list):
+            #print(smiles)
             encodings.append(self._encode_smiles(smiles, y))
+            #print(encodings)
         return encodings
 
     def get_data_loader(self, dataset: List[T_MoleculeEncoding], *, batch_size: int, shuffle: bool = False,

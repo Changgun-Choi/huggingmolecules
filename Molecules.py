@@ -15,7 +15,6 @@ Created on Mon Jan  3 14:47:01 2022
 !pip install jaxlib
 !pip install jax[cuda111] -f https://whls.blob.core.windows.net/unstable/index.html --use-deprecated legacy-resolver
 !pip install git+https://https://github.com/google/gin-config
-!pip install rdkit-pypi
 #%%
 
 import sys
@@ -39,123 +38,71 @@ from torch.optim import Adam
 from pytorch_lightning import Trainer
 from pytorch_lightning.metrics import MeanAbsoluteError
 import pandas as pd
-#from help import *
-import logging
-
 #%%
 from experiments.src.training import *
 
-
 #%%
+model_flash = MatModel.from_pretrained('mat_masking_20M')
+featurizer = MatFeaturizer.from_pretrained('mat_masking_20M')
 
 #cd "C:/Users/ChangGun Choi/Team Project/Molecules/huggingmolecules/data"
-
-#train_smiles = train_data['smiles'].apply(lambda x: str(x))
-
-def preprocess(data):
-    
-    smiles = data['smiles']        
-    drop = []
-    for i, smile in enumerate(smiles):
-        mol = MolFromSmiles(smile)
-        
-        if mol == None:
-            drop.append(i)
-            
-        #AllChem.UFFOptimizeMolecule(mol)
-    print(drop)
-    
-    data = data.drop(drop)
-    dataset = data.reset_index(drop=True)
-    
-    return dataset
-#%%
 train_data = pd.read_csv("C:/Users/ChangGun Choi/Team Project/Molecules/huggingmolecules/data/flash_train.csv")
-valid_data = pd.read_csv("C:/Users/ChangGun Choi/Team Project/Molecules/huggingmolecules/data/flash_valid.csv")
-test_data = pd.read_csv("C:/Users/ChangGun Choi/Team Project/Molecules/huggingmolecules/data/flash_test.csv")
-
-train_data = preprocess(train_data)
 train_data
-#preprocess(valid_data)
-#preprocess(test_data)
+ 
+
+_get_data_split_from_csv(dataset_name: str,
+                             assay_name: str,
+                             dataset_path: "C:/Users/ChangGun Choi/Team Project/Molecules/huggingmolecules/data/flash_train.csv",
+                             split_method: str,
+                             split_frac: Tuple[float, float, float],
+                             split_seed: int)
+
+get_data_split(task_name: str,
+                   dataset_name: str,
+                   assay_name: str = None,
+                   split_method: str = "random",
+                   split_frac: Tuple[float, float, float] = (0.8, 0.1, 0.1),
+                   split_seed: Union[int, str] = None,
+                   normalize_labels: bool = False,
+                   dataset_path: str = None) 
+
+
+get_data_loaders(featurizer: PretrainedFeaturizerMixin, *,
+                    batch_size: int,
+                    num_workers: int = 0,
+                    cache_encodings: bool = False,
+                    task_name: str = None,
+                    dataset_name: str = None)
 
 
 #%%
-
-def split_data(train_data,valid_data, test_data):
-    
-    return {
-        'train': {
-                  'X': train_data['smiles'].to_list(),
-                  'Y': train_data['y'].to_numpy()},
-        'valid': {
-                  'X': valid_data['smiles'].to_list(),
-                  'Y': valid_data['y'].to_numpy()},
-        'test': {
-                 'X': test_data['smiles'].to_list(),
-                 'Y': test_data['y'].to_numpy()}
-    }
-
-model = MatModel.from_pretrained('mat_masking_20M')
-featurizer = MatFeaturizer.from_pretrained('mat_masking_20M')
-split = split_data(train_data,valid_data, test_data)
-split
-
-#%%
-from typing import Tuple, List, Union, Type, Callable, Dict, Any
-from torch.utils.data import DataLoader, random_split
-from src.huggingmolecules.featurization.featurization_api import PretrainedFeaturizerMixin
-
-
-def data_loader(featurizer=PretrainedFeaturizerMixin,*, batch_size, num_workers,cache_encodings: bool = False, split) -> Tuple[DataLoader, DataLoader, DataLoader]:
-    
-    split['train']['X'] = featurizer.encode_smiles_list(split['train']['X'], split['train']['Y'])
-    split['valid']['X'] = featurizer.encode_smiles_list(split['valid']['X'], split['valid']['Y'])
-    split['test']['X'] = featurizer.encode_smiles_list(split['test']['X'], split['test']['Y'])
-    
-    if cache_encodings and not _encodings_cached():
-        _dump_encodings_to_cache(split)
-    
-    train_data = split['train']['X']
-    valid_data = split['valid']['X']
-    test_data = split['test']['X']
-
-    #logging.info(f'Train samples: {len(train_data)}')
-    #logging.info(f'Validation samples: {len(valid_data)}')
-    #logging.info(f'Test samples: {len(test_data)}')
-
-    train_loader = featurizer.get_data_loader(train_data, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-    valid_loader = featurizer.get_data_loader(valid_data, batch_size=batch_size, shuffle=False, num_workers=num_workers)
-    test_loader = featurizer.get_data_loader(test_data, batch_size=batch_size, shuffle=False, num_workers=num_workers)
-
-    return train_loader, valid_loader, test_loader
-
-#%%
-
-
 batch_size = 32
 num_workers = 0
 
-train_dataloader, _, _ = data_loader(featurizer, batch_size=32 ,num_workers=0, split=split)
+train_loader = featurizer.get_data_loader(train_data, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 
 
-#  File "C:\Users\CHANGG~1\AppData\Local\Temp/ipykernel_16548/1257150278.py", line 1, in <listcomp>
- #   np.array([get_atom_features(atom) for atom in mol.GetAtoms()])
-#  NameError: name 'get_atom_features' is not defined
+valid_loader = featurizer.get_data_loader(valid_data, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+test_loader = featurizer.get_data_loader(test_data, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
 #%%
 # Build the pytorch lightning training module:
 pl_module = TrainingModule(model,
                            loss_fn=L1Loss(),
                            metric_cls=MeanAbsoluteError,
-                           optimizer=Adam(model_flash.parameters()))
+                           optimizer=Adam(model.parameters()))
+
+# Build the data loader for the freesolv dataset:
+train_dataloader, _, _ = get_data_loaders(featurizer,
+                                          batch_size=32,
+                                          task_name=None,
+                                          dataset_name=None)
 
 # Build the pytorch lightning trainer and fine-tune the module on the train dataset:
 trainer = Trainer(max_epochs=1)
 trainer.fit(pl_module, train_dataloader=train_dataloader)
 
 # Make the prediction for the batch of SMILES strings:
-batch = featurizer('CCCCCCCCCCCO')    
 batch = featurizer(['C/C=C/C', '[C]=O'])
 output = pl_module.model(batch)
 output
@@ -177,6 +124,7 @@ model.load_weights('tuned_mat_masking_20M.pt')
 model.load_weights('tuned_mat_masking_20M.pt', excluded=['generator'])
 
 # Build the model and load the previously saved weights:
+config = MatConfig.from_pretrained('mat_masking_20M')
 model = MatModel.from_pretrained('tuned_mat_masking_20M.pt',
                                  excluded=['generator'],
                                  config=config)
@@ -235,11 +183,11 @@ cm = np.array(cm)
 cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 a = cm.sum(axis=1)
 b = cm.sum(axis=1)[:,np.newaxis]
-
-
-
-
 cm
+
+
+
+
 
 
 

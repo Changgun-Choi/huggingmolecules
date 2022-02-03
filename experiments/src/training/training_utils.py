@@ -15,7 +15,7 @@ from pytorch_lightning import loggers as pl_loggers, Callback
 from pytorch_lightning.metrics import Metric
 from torch.utils.data import DataLoader, random_split
 
-import experiments.src.training.training_callbacks as custom_callbacks_module
+import experiments.src.training.training_callbacks as custom_callbacks_modcondaule
 import experiments.src.training.training_loss_fn as custom_loss_fn_module
 import experiments.src.training.training_metrics as custom_metrics_module
 import experiments.src.wrappers as experiments_wrappers
@@ -41,7 +41,7 @@ class GinModel:
                  pretrained_name: str,
                  **kwargs):
         self.cls_name = cls_name
-        self.pretrained_name = pretrained_name
+        self.pretrained_name = pretrained_namena
         self.kwargs = kwargs if kwargs else {}
         self.model_cls = self._get_model_cls()
         self.config_cls = self.model_cls.get_config_cls()
@@ -255,9 +255,9 @@ def _get_data_split_from_csv(dataset_name: str,
     data.insert(0, 'IDs', range(0, len(data)))
 
     split_path = os.path.join(dataset_path, f'split-{split_method}-{split_seed}.npy')
-    if os.path.exists(split_path):
+    if os.path.exists(split_path): 
         train_data, valid_data, test_data = _split_data_from_file(data, split_path)
-    elif split_method == 'random':
+    elif split_method == 'random': 
         train_data, valid_data, test_data = _split_data_random(data, split_frac, split_seed)
     else:
         raise NotImplementedError()

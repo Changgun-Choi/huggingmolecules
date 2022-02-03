@@ -11,6 +11,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem.rdchem import Mol
 from rdkit.Chem.rdmolfiles import MolFromSmiles
+from rdkit.Chem.Draw import IPythonConsole
 
 from ..featurization.featurization_common_utils import one_hot_vector
 
@@ -72,6 +73,8 @@ def build_position_matrix(molecule: Mol) -> np.ndarray:
 
 
 def build_atom_features_matrix(mol: Mol) -> np.ndarray:
+    #if mol == None: ###########################################################################
+       # continue
     return np.array([get_atom_features(atom) for atom in mol.GetAtoms()])
 
 
@@ -89,16 +92,33 @@ def get_atom_features(atom) -> np.ndarray:
 
 
 def get_mol_from_smiles(smiles: str) -> Mol:
+    smiles = '[N+](#[C-])c1ccc(cc1)OC'
+    #smiles = '[Fe+2].[c-]2([c-H][c-H][c-H][c-H]2)C.[c-]1([c-H][c-H][c-H][c-H]1)C'
+    
+    #print(smiles)
     mol = MolFromSmiles(smiles)
-    try:
-        mol = Chem.AddHs(mol)
-        AllChem.EmbedMolecule(mol, maxAttempts=5000)
-        AllChem.UFFOptimizeMolecule(mol)
-        mol = Chem.RemoveHs(mol)
-    except ValueError:
-        mol = MolFromSmiles(smiles)
-        AllChem.Compute2DCoords(mol)
-
+    #print(mol)
+    if mol is not None:
+        
+    #print(mol)
+    #if smiles =='CCCCCCCCCCCO':
+        #print('done')
+        #print(Chem.MolFromSmiles('CO(C)C'))
+    #break
+        try:
+            mol = Chem.AddHs(mol)
+            #print(mol)
+            AllChem.EmbedMolecule(mol, maxAttempts=5000)
+            AllChem.UFFOptimizeMolecule(mol)
+            mol = Chem.RemoveHs(mol)    
+            mol            
+        except: # ValueError             ## Escape
+            mol = MolFromSmiles(smiles)        
+            AllChem.Compute2DCoords(mol)
+            
+    else:
+        #mol = None
+        pass  # if continue -> skip 
     return mol
 
 
