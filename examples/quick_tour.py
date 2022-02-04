@@ -35,11 +35,18 @@ train_dataloader, _, _ = get_data_loaders(featurizer,
                                           dataset_name='hydrationfreeenergy_freesolv')
 #%%
 # Build the pytorch lightning trainer and fine-tune the module on the train dataset:
-trainer = Trainer(max_epochs=2)
+trainer = Trainer(max_epochs=7)
 trainer.fit(pl_module, train_dataloader=train_dataloader)
+
 #%%
 # Make the prediction for the batch of SMILES strings:
-batch = featurizer(['C/C=C/C', '[C]=O'])
-batch = featurizer(['CCCCCCCCCCCO'])
-output = pl_module.model(batch)
-output
+featurizer = MatFeaturizer.from_pretrained('mat_masking_20M')
+
+batch1 = featurizer(['C/C=C/C'])
+batch1
+batch2 = featurizer(['[C]=O'])
+batch3 = featurizer(['CCCCCCCCCCCO'])
+batch3
+print(pl_module.model(batch1))
+print(pl_module.model(batch2))
+print(pl_module.model(batch3))

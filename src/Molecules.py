@@ -44,7 +44,7 @@ import logging
 
 #%%
 from experiments.src.training import *
-
+from rdkit.Chem.rdmolfiles import MolFromSmiles
 
 #%%
 
@@ -96,10 +96,9 @@ def split_data(train_data,valid_data, test_data):
                  'Y': test_data['y'].to_numpy()}
     }
 
-model = MatModel.from_pretrained('mat_masking_20M')
-featurizer = MatFeaturizer.from_pretrained('mat_masking_20M')
+
 split = split_data(train_data,valid_data, test_data)
-split
+
 
 #%%
 from typing import Tuple, List, Union, Type, Callable, Dict, Any
@@ -135,6 +134,8 @@ def data_loader(featurizer=PretrainedFeaturizerMixin,*, batch_size, num_workers,
 
 batch_size = 32
 num_workers = 0
+model = MatModel.from_pretrained('mat_masking_20M')
+featurizer = MatFeaturizer.from_pretrained('mat_masking_20M')
 
 train_dataloader, _, _ = data_loader(featurizer, batch_size=32 ,num_workers=0, split=split)
 
@@ -151,11 +152,11 @@ pl_module = TrainingModule(model,
                            optimizer=Adam(model_flash.parameters()))
 
 # Build the pytorch lightning trainer and fine-tune the module on the train dataset:
-trainer = Trainer(max_epochs=1)
+trainer = Trainer(max_epochs=5)
 trainer.fit(pl_module, train_dataloader=train_dataloader)
-
+#%%
 # Make the prediction for the batch of SMILES strings:
-batch = featurizer('CCCCCCCCCCCO')    
+#batch = featurizer('CCCCCCCCCCCO')    
 batch = featurizer(['C/C=C/C', '[C]=O'])
 output = pl_module.model(batch)
 output
