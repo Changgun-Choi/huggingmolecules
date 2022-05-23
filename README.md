@@ -1,7 +1,7 @@
 # For research and industrial implemenaton purpose (Working Student at Merck)
 
 
-# HuggingMolecules
+## HuggingMolecules
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/38813586/117339001-85a2bc80-ae9f-11eb-9adb-7c4477cfc5bb.png" width="200"/>
